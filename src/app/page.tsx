@@ -60,6 +60,13 @@ const STATS = [
 export default function LandingPage() {
   return (
     <div className="min-h-screen flex flex-col">
+      {/* Tricolour Indian Flag Top Banner Strip */}
+      <div className="h-1.5 w-full flex">
+        <div className="bg-[#FF9933] flex-1" />
+        <div className="bg-white flex-1" />
+        <div className="bg-[#138808] flex-1" />
+      </div>
+
       {/* Navigation */}
       <nav className="sticky top-0 z-50 glass-card border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
@@ -102,9 +109,15 @@ export default function LandingPage() {
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 sm:py-32 lg:py-40">
           <div className="max-w-3xl mx-auto text-center">
             {/* Badge */}
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 mb-8 rounded-full border bg-card text-sm font-medium text-muted-foreground">
-              <Shield className="w-4 h-4 text-saffron" />
-              Ministry of Statistics & Programme Implementation
+            <div className="inline-flex flex-col sm:flex-row items-center gap-2 px-4 py-1.5 mb-8 rounded-xl border bg-muted/40 text-xs font-semibold text-muted-foreground max-w-fit mx-auto shadow-sm">
+              <span className="flex items-center gap-1.5 text-navy font-bold dark:text-amber-400">
+                <Shield className="w-4 h-4 text-saffron" />
+                Ministry of Statistics & Programme Implementation (MoSPI)
+              </span>
+              <span className="hidden sm:inline text-slate-300">|</span>
+              <span className="text-[10px] uppercase font-mono tracking-wide text-saffron font-bold">
+                Mission Karmayogi
+              </span>
             </div>
 
             {/* Headline */}
