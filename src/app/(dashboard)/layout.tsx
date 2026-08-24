@@ -24,11 +24,15 @@ export default async function DashboardLayout({
   }
 
   // Fetch profile with department
-  const { data: profile } = await supabase
+  const { data: profile, error } = await supabase
     .from("profiles")
     .select("*, department:departments(*)")
     .eq("id", user.id)
     .single();
+
+  if (error) {
+    console.error("DashboardLayout Profile Fetch Error:", error);
+  }
 
   const profileData = profile as unknown as ProfileWithDepartment | null;
   const userRole: UserRole = profileData?.role || "employee";
