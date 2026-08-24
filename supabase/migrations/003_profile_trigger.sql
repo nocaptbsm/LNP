@@ -10,8 +10,8 @@ BEGIN
     COALESCE(NEW.raw_user_meta_data ->> 'full_name', NEW.email),
     NEW.email,
     COALESCE(
-      (NEW.raw_user_meta_data ->> 'role')::user_role,
-      'employee'::user_role
+      (NEW.raw_user_meta_data ->> 'role')::public.user_role,
+      'employee'::public.user_role
     )
   );
   RETURN NEW;
