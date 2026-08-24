@@ -1,0 +1,195 @@
+// StatSkill AI — Assessments Hub Page
+
+import { redirect } from "next/navigation";
+import Link from "next/link";
+import {
+  ClipboardCheck,
+  Target,
+  Clock,
+  Sparkles,
+  ArrowRight,
+  Brain,
+  CheckCircle2,
+} from "lucide-react";
+
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { createClient } from "@/lib/supabase/server";
+import { getAssessmentHistory } from "./actions";
+
+export const metadata = {
+  title: "Assessments — StatSkill AI",
+};
+
+export default async function AssessmentsPage() {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) redirect("/login");
+
+  const history = await getAssessmentHistory(user.id);
+
+  return (
+    <div className="max-w-7xl mx-auto space-y-6 animate-in fade-in duration-300">
+      {/* Top Banner */}
+      <div className="rounded-xl gradient-navy p-6 sm:p-8 text-white relative overflow-hidden">
+        <div className="relative flex flex-col md:flex-row md:items-center justify-between gap-6">
+          <div className="space-y-2 max-w-2xl">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 text-xs font-medium text-amber-300">
+              <ClipboardCheck className="w-3.5 h-3.5" />
+              Competency Evaluation Engine
+            </div>
+            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">
+              Skill Assessments & Evaluation
+            </h1>
+            <p className="text-white/70 text-sm leading-relaxed">
+              Complete self-assessments and quizzes to measure your technical proficiency, update your competency profile, and generate personalized learning paths.
+            </p>
+          </div>
+
+          <Button
+            nativeButton={false}
+            render={<Link href="/assessments/take" />}
+            className="bg-saffron hover:bg-saffron/90 text-navy font-semibold border-0 shadow-lg gap-2 h-auto py-3 px-6 flex-shrink-0"
+          >
+            <Target className="w-4 h-4" />
+            Start Self-Assessment
+            <ArrowRight className="w-4 h-4" />
+          </Button>
+        </div>
+      </div>
+
+      {/* Available Assessment Types */}
+      <div className="grid md:grid-cols-2 gap-6">
+        {/* Baseline Self Assessment Card */}
+        <Card className="border-amber-500/30 bg-amber-500/5 relative overflow-hidden">
+          <CardHeader className="pb-3">
+            <div className="flex items-start justify-between">
+              <div className="w-10 h-10 rounded-lg bg-amber-500/10 flex items-center justify-center">
+                <Target className="w-5 h-5 text-amber-600 dark:text-amber-400" />
+              </div>
+              <Badge className="bg-amber-500 text-white hover:bg-amber-600">Available Now</Badge>
+            </div>
+            <CardTitle className="text-xl mt-3">Baseline Self-Assessment Survey</CardTitle>
+            <CardDescription>
+              Evaluate your proficiency across 14 official statistical, technical, and governance competencies on a 5-point scale.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="text-xs text-muted-foreground space-y-1.5 font-medium">
+              <p>✓ Instant radar chart update</p>
+              <p>✓ Takes ~3-5 minutes to complete</p>
+              <p>✓ Evaluates 4 MoSPI Competency Domains</p>
+            </div>
+            <Button
+              nativeButton={false}
+              render={<Link href="/assessments/take" />}
+              className="w-full gap-2 gradient-navy text-white"
+            >
+              Take Assessment
+              <ArrowRight className="w-4 h-4" />
+            </Button>
+          </CardContent>
+        </Card>
+
+        {/* AI-Generated Material Quiz Card (Phase 4 preview) */}
+        <Card className="relative overflow-hidden opacity-90 border-dashed">
+          <CardHeader className="pb-3">
+            <div className="flex items-start justify-between">
+              <div className="w-10 h-10 rounded-lg bg-purple-500/10 flex items-center justify-center">
+                <Brain className="w-5 h-5 text-purple-600 dark:text-purple-400" />
+              </div>
+              <Badge variant="outline" className="text-xs">
+                Phase 4 Preview
+              </Badge>
+            </div>
+            <CardTitle className="text-xl mt-3">AI-Generated Material Quizzes</CardTitle>
+            <CardDescription>
+              Take automated MCQ quizzes generated directly from official MoSPI training PDFs, manuals, and guidelines.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="text-xs text-muted-foreground space-y-1.5 font-medium">
+              <p>• Generated by LLM from uploaded course PDFs</p>
+              <p>• Verified & approved by MoSPI Trainers</p>
+              <p>• Automatic score calibration</p>
+            </div>
+            <Button disabled variant="outline" className="w-full gap-2">
+              <Sparkles className="w-4 h-4 text-purple-500" />
+              Unlocks in Phase 4
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Assessment History Table */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg flex items-center gap-2">
+            <Clock className="w-5 h-5 text-primary" />
+            Assessment History & Logs
+          </CardTitle>
+          <CardDescription>
+            Past evaluations and score submissions recorded for your account
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {history.length === 0 ? (
+            <div className="py-12 text-center text-muted-foreground text-sm">
+              <p className="font-medium text-foreground">No assessments recorded yet.</p>
+              <p className="mt-1">Take your first baseline self-assessment to start tracking progress.</p>
+            </div>
+          ) : (
+            <div className="rounded-lg border overflow-hidden">
+              <table className="w-full text-sm text-left">
+                <thead className="bg-muted/50 text-xs font-semibold text-muted-foreground uppercase tracking-wider border-b">
+                  <tr>
+                    <th className="p-3.5">Assessment Title</th>
+                    <th className="p-3.5">Type</th>
+                    <th className="p-3.5 text-center">Score</th>
+                    <th className="p-3.5 text-center">Status</th>
+                    <th className="p-3.5 text-right">Date Completed</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y">
+                  {history.map((item) => (
+                    <tr key={item.id} className="hover:bg-muted/30 transition-colors">
+                      <td className="p-3.5 font-medium">{item.title}</td>
+                      <td className="p-3.5 text-xs text-muted-foreground uppercase font-mono">
+                        {item.type.replace("_", " ")}
+                      </td>
+                      <td className="p-3.5 text-center font-mono font-bold text-amber-600 dark:text-amber-400">
+                        {item.score_percentage}%
+                      </td>
+                      <td className="p-3.5 text-center">
+                        <Badge
+                          variant="outline"
+                          className="bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-400"
+                        >
+                          <CheckCircle2 className="w-3 h-3 mr-1" />
+                          Completed
+                        </Badge>
+                      </td>
+                      <td className="p-3.5 text-right text-xs text-muted-foreground font-mono">
+                        {item.completed_at
+                          ? new Date(item.completed_at).toLocaleDateString("en-IN", {
+                              day: "numeric",
+                              month: "short",
+                              year: "numeric",
+                            })
+                          : "In Progress"}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
