@@ -13,6 +13,9 @@ import {
   ArrowRight,
   Sparkles,
   ShieldAlert,
+  Library,
+  PlayCircle,
+  CheckCircle2,
 } from "lucide-react";
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -24,6 +27,7 @@ import { createClient } from "@/lib/supabase/server";
 import { ROLE_LABELS } from "@/lib/constants";
 import type { ProfileWithDepartment } from "@/types";
 import { getCompetencyProfileData } from "../competency/actions";
+import { generateOrGetLearningPath, getUserLearningSummary } from "../learning/actions";
 import { CompetencyRadarChart } from "@/components/charts/radar-chart";
 
 export const metadata = {
@@ -46,13 +50,19 @@ export default async function DashboardPage() {
 
   const p = profile as unknown as ProfileWithDepartment | null;
 
-  // Fetch real competency profile analytics for this user
+  // Fetch live competency analytics
   const compData = await getCompetencyProfileData(user.id);
+
+  // Fetch live learning roadmap and learning hour summary
+  const learningDetails = await generateOrGetLearningPath(user.id);
+  const learningSummary = await getUserLearningSummary(user.id);
 
   // Current time greeting
   const hour = new Date().getHours();
   const greeting =
     hour < 12 ? "Good Morning" : hour < 17 ? "Good Afternoon" : "Good Evening";
+
+  const topRecommendations = learningDetails.items.slice(0, 3);
 
   return (
     <div className="max-w-7xl mx-auto space-y-6">
@@ -87,21 +97,22 @@ export default async function DashboardPage() {
             </div>
           </div>
 
-          <Button
-            nativeButton={false}
-            render={<Link href="/assessments/take" />}
-            className="bg-saffron hover:bg-saffron/90 text-navy font-semibold border-0 shadow-md gap-2 flex-shrink-0"
-          >
-            <Target className="w-4 h-4" />
-            {compData.totalCompetenciesAssessed === 0
-              ? "Start Self-Assessment"
-              : "Retake Assessment"}
-          </Button>
+          <div className="flex items-center gap-2 flex-shrink-0">
+            <Button
+              nativeButton={false}
+              render={<Link href="/learning" />}
+              className="bg-saffron hover:bg-saffron/90 text-navy font-semibold border-0 shadow-md gap-2"
+            >
+              <BookOpen className="w-4 h-4" />
+              My Learning Path
+            </Button>
+          </div>
         </div>
       </div>
 
-      {/* Quick Stats */}
+      {/* Quick Stats Grid */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        {/* Stat 1: Competency Target */}
         <Card className="stat-card">
           <CardContent className="pt-6">
             <div className="flex items-start justify-between">
@@ -125,6 +136,7 @@ export default async function DashboardPage() {
           </CardContent>
         </Card>
 
+        {/* Stat 2: Critical Gaps */}
         <Card className="stat-card">
           <CardContent className="pt-6">
             <div className="flex items-start justify-between">
@@ -146,6 +158,7 @@ export default async function DashboardPage() {
           </CardContent>
         </Card>
 
+        {/* Stat 3: Learning Hours */}
         <Card className="stat-card">
           <CardContent className="pt-6">
             <div className="flex items-start justify-between">
@@ -153,9 +166,11 @@ export default async function DashboardPage() {
                 <p className="text-sm text-muted-foreground font-medium">
                   Learning Hours
                 </p>
-                <p className="text-3xl font-bold font-mono mt-1">0</p>
+                <p className="text-3xl font-bold font-mono mt-1 text-amber-600 dark:text-amber-400">
+                  {learningSummary.totalHoursSpent}h
+                </p>
                 <p className="text-xs text-muted-foreground mt-1">
-                  This quarter
+                  Logged on iGOT & NSSTA
                 </p>
               </div>
               <div className="w-10 h-10 rounded-lg bg-amber-50 dark:bg-amber-950/40 flex items-center justify-center">
@@ -165,6 +180,7 @@ export default async function DashboardPage() {
           </CardContent>
         </Card>
 
+        {/* Stat 4: Completed Courses */}
         <Card className="stat-card">
           <CardContent className="pt-6">
             <div className="flex items-start justify-between">
@@ -172,9 +188,11 @@ export default async function DashboardPage() {
                 <p className="text-sm text-muted-foreground font-medium">
                   Courses Completed
                 </p>
-                <p className="text-3xl font-bold font-mono mt-1">0</p>
+                <p className="text-3xl font-bold font-mono mt-1 text-emerald-600 dark:text-emerald-400">
+                  {learningSummary.completedCoursesCount}
+                </p>
                 <p className="text-xs text-muted-foreground mt-1">
-                  iGOT & NSSTA
+                  {learningSummary.inProgressCount} in progress
                 </p>
               </div>
               <div className="w-10 h-10 rounded-lg bg-emerald-50 dark:bg-emerald-950/40 flex items-center justify-center">
@@ -293,125 +311,159 @@ export default async function DashboardPage() {
         </Card>
       </div>
 
-      {/* Recommended Learning & Activity */}
+      {/* Row 3: Recommended Courses & Learning Roadmap */}
       <div className="grid lg:grid-cols-2 gap-6">
-        {/* Recommended Courses (Phase 3 preview) */}
+        {/* Recommended Courses Card */}
         <Card>
           <CardHeader className="pb-3">
             <div className="flex items-center justify-between">
-              <CardTitle className="text-lg flex items-center gap-2">
-                <Sparkles className="w-5 h-5 text-saffron" />
-                AI Learning Recommendations
-              </CardTitle>
-              <Badge variant="secondary" className="text-xs">
-                Phase 3
-              </Badge>
+              <div>
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <Sparkles className="w-5 h-5 text-saffron" />
+                  AI Training Recommendations
+                </CardTitle>
+                <CardDescription>
+                  Tailored modules from iGOT & NSSTA addressing your critical gaps
+                </CardDescription>
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                nativeButton={false}
+                render={<Link href="/learning" />}
+                className="text-xs h-8 gap-1"
+              >
+                Full Roadmap
+                <ArrowRight className="w-3.5 h-3.5" />
+              </Button>
             </div>
           </CardHeader>
           <CardContent>
-            <div className="space-y-3">
-              {[
-                {
-                  title: "Python for Statistical Analysis",
-                  provider: "iGOT Karmayogi",
-                  skill: "Python",
-                  priority: "High",
-                },
-                {
-                  title: "Applied Machine Learning",
-                  provider: "NSSTA",
-                  skill: "AI/ML",
-                  priority: "High",
-                },
-                {
-                  title: "Advanced Sampling Methods",
-                  provider: "NSSTA",
-                  skill: "Sampling",
-                  priority: "Medium",
-                },
-              ].map((course) => (
-                <div
-                  key={course.title}
-                  className="flex items-start gap-3 p-3 rounded-lg border bg-card hover:bg-muted/50 transition-colors"
-                >
-                  <div className="w-9 h-9 rounded-lg bg-saffron/10 flex items-center justify-center flex-shrink-0 mt-0.5">
-                    <BookOpen className="w-4 h-4 text-saffron" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium truncate">
-                      {course.title}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      {course.provider} · {course.skill}
-                    </p>
-                  </div>
-                  <Badge
-                    variant={
-                      course.priority === "High" ? "destructive" : "secondary"
-                    }
-                    className="text-[10px] flex-shrink-0"
+            {topRecommendations.length === 0 ? (
+              <div className="py-8 text-center text-sm text-muted-foreground">
+                No recommended courses found.
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {topRecommendations.map((item) => (
+                  <div
+                    key={item.id}
+                    className="flex items-start gap-3 p-3 rounded-lg border bg-card hover:bg-muted/40 transition-colors"
                   >
-                    {course.priority}
-                  </Badge>
-                </div>
-              ))}
-
-              <Separator />
-              <p className="text-xs text-muted-foreground italic text-center">
-                Preview — AI recommendations engine unlocks in Phase 3
-              </p>
-            </div>
+                    <div className="w-9 h-9 rounded-lg bg-saffron/10 flex items-center justify-center flex-shrink-0 mt-0.5">
+                      <BookOpen className="w-4 h-4 text-saffron" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium truncate">{item.course.title}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {item.course.provider} · {item.course.duration_hours}h · {item.course.level}
+                      </p>
+                      {item.recommendation_reason && (
+                        <p className="text-[11px] text-amber-700 dark:text-amber-400 mt-1 line-clamp-1">
+                          🎯 {item.recommendation_reason}
+                        </p>
+                      )}
+                    </div>
+                    <Badge
+                      variant={item.priority === "high" ? "destructive" : "secondary"}
+                      className="text-[10px] flex-shrink-0"
+                    >
+                      {item.priority === "high" ? "Critical" : "Recommended"}
+                    </Badge>
+                  </div>
+                ))}
+              </div>
+            )}
           </CardContent>
         </Card>
 
-        {/* Recent Activity */}
+        {/* Learning Activity & Quick Links */}
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-lg flex items-center gap-2">
-              <Clock className="w-5 h-5 text-muted-foreground" />
-              Recent Activity
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex flex-col items-center justify-center py-12 text-center">
-              <div className="w-16 h-16 rounded-2xl bg-muted flex items-center justify-center mb-4">
-                <Clock className="w-8 h-8 text-muted-foreground" />
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <Library className="w-5 h-5 text-primary" />
+                  National Training Repositories
+                </CardTitle>
+                <CardDescription>
+                  Certified e-learning portals integrated with StatSkill AI
+                </CardDescription>
               </div>
-              <h3 className="text-lg font-semibold mb-2">No Activity Yet</h3>
-              <p className="text-sm text-muted-foreground max-w-xs">
-                Your learning activities, assessment results, and course
-                completions will appear here.
-              </p>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <div className="p-3 rounded-lg border bg-card flex items-center justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-lg bg-amber-500/10 flex items-center justify-center">
+                  <GraduationCap className="w-5 h-5 text-amber-600 dark:text-amber-400" />
+                </div>
+                <div>
+                  <p className="text-sm font-semibold">iGOT Karmayogi Platform</p>
+                  <p className="text-xs text-muted-foreground">Comprehensive Civil Services e-Learning</p>
+                </div>
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                nativeButton={false}
+                render={
+                  <a
+                    href="https://igotkarmayogi.gov.in"
+                    target="_blank"
+                    rel="noreferrer"
+                  />
+                }
+                className="text-xs"
+              >
+                Visit Portal
+              </Button>
+            </div>
+
+            <div className="p-3 rounded-lg border bg-card flex items-center justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-lg bg-blue-500/10 flex items-center justify-center">
+                  <BarChart3 className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                </div>
+                <div>
+                  <p className="text-sm font-semibold">NSSTA Academy</p>
+                  <p className="text-xs text-muted-foreground">National Statistical Systems Training Academy</p>
+                </div>
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                nativeButton={false}
+                render={
+                  <a
+                    href="https://nssta.gov.in"
+                    target="_blank"
+                    rel="noreferrer"
+                  />
+                }
+                className="text-xs"
+              >
+                Visit Portal
+              </Button>
+            </div>
+
+            <Separator className="my-2" />
+
+            <div className="flex items-center justify-between pt-1">
+              <span className="text-xs text-muted-foreground">Looking for specialized modules?</span>
+              <Button
+                variant="link"
+                size="sm"
+                nativeButton={false}
+                render={<Link href="/learning/catalogue" />}
+                className="text-xs p-0 h-auto"
+              >
+                Browse all 16 courses →
+              </Button>
             </div>
           </CardContent>
         </Card>
       </div>
-
-      {/* Getting Started Guide */}
-      <Card className="border-saffron/20 bg-saffron/5">
-        <CardContent className="pt-6">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-            <div className="w-12 h-12 rounded-xl bg-saffron/10 flex items-center justify-center flex-shrink-0">
-              <Sparkles className="w-6 h-6 text-saffron" />
-            </div>
-            <div className="flex-1">
-              <h3 className="font-semibold mb-1">Competency Intelligence Active</h3>
-              <p className="text-sm text-muted-foreground">
-                Take your baseline self-assessment to map your current proficiency across statistical and technical domains.
-              </p>
-            </div>
-            <Button
-              variant="outline"
-              className="flex-shrink-0 gap-2"
-              nativeButton={false}
-              render={<Link href="/assessments/take" />}
-            >
-              Take Assessment
-              <ArrowRight className="w-4 h-4" />
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
     </div>
   );
 }

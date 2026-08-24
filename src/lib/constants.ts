@@ -13,6 +13,7 @@ import {
   TrendingUp,
   Code2,
   Award,
+  Library,
   type LucideIcon,
 } from 'lucide-react';
 import type { UserRole } from '@/types';
@@ -74,19 +75,25 @@ export const NAV_GROUPS: NavGroup[] = [
         disabled: false,
       },
       {
+        title: 'Learning Path',
+        href: '/learning',
+        icon: BookOpen,
+        roles: ['employee', 'trainer', 'admin'],
+        disabled: false,
+      },
+      {
+        title: 'Course Catalogue',
+        href: '/learning/catalogue',
+        icon: Library,
+        roles: ['employee', 'trainer', 'admin'],
+        disabled: false,
+      },
+      {
         title: 'Assessments',
         href: '/assessments',
         icon: ClipboardCheck,
         roles: ['employee', 'trainer', 'admin'],
         disabled: false,
-      },
-      {
-        title: 'Learning Path',
-        href: '/learning',
-        icon: BookOpen,
-        roles: ['employee'],
-        badge: 'Phase 3',
-        disabled: true,
       },
     ],
   },

@@ -8,6 +8,9 @@
 export type UserRole = 'employee' | 'trainer' | 'admin';
 export type AssessmentType = 'self_assessment' | 'ai_quiz' | 'supervisor_review';
 export type AssessmentStatus = 'in_progress' | 'completed';
+export type CourseLevel = 'Beginner' | 'Intermediate' | 'Advanced';
+export type CourseProgressStatus = 'enrolled' | 'in_progress' | 'completed';
+export type RecommendationPriority = 'high' | 'medium' | 'low';
 
 // ============================================================
 // TABLES
@@ -100,6 +103,66 @@ export interface AssessmentResult {
   created_at: string;
 }
 
+export interface Course {
+  id: string;
+  title: string;
+  code: string;
+  provider: string;
+  description: string | null;
+  duration_hours: number;
+  level: CourseLevel;
+  external_url: string | null;
+  thumbnail_url: string | null;
+  rating: number;
+  enrolled_count: number;
+  is_active: boolean;
+  created_at: string;
+}
+
+export interface CourseCompetency {
+  id: string;
+  course_id: string;
+  competency_id: string;
+  target_level: number;
+  relevance_weight: number;
+  created_at: string;
+}
+
+export interface LearningPath {
+  id: string;
+  user_id: string;
+  title: string;
+  status: string;
+  total_courses: number;
+  completed_courses: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface LearningPathCourse {
+  id: string;
+  learning_path_id: string;
+  course_id: string;
+  competency_id: string | null;
+  priority: RecommendationPriority;
+  sequence_order: number;
+  recommendation_reason: string | null;
+  status: string;
+  created_at: string;
+}
+
+export interface UserCourseProgress {
+  id: string;
+  user_id: string;
+  course_id: string;
+  status: CourseProgressStatus;
+  progress_percentage: number;
+  hours_spent: number;
+  started_at: string;
+  completed_at: string | null;
+  updated_at: string;
+}
+
 // ============================================================
 // COMPUTED / JOIN TYPES (for UI & Skill Intelligence)
 // ============================================================
@@ -136,6 +199,30 @@ export interface DomainOverview {
 
 export interface AssessmentWithResults extends Assessment {
   results: (AssessmentResult & { competency: Competency })[];
+}
+
+export interface CourseWithCompetencies extends Course {
+  competencies?: (CourseCompetency & { competency: Competency })[];
+  user_progress?: UserCourseProgress | null;
+}
+
+export interface LearningPathCourseItem {
+  id: string;
+  priority: RecommendationPriority;
+  sequence_order: number;
+  recommendation_reason: string | null;
+  status: string;
+  course: Course;
+  competency?: Competency | null;
+  user_progress?: UserCourseProgress | null;
+}
+
+export interface LearningPathDetails {
+  path: LearningPath | null;
+  items: LearningPathCourseItem[];
+  totalHours: number;
+  completedHours: number;
+  criticalGapsCovered: number;
 }
 
 // ============================================================
@@ -230,6 +317,39 @@ export interface Database {
         Row: AssessmentResult;
         Insert: Omit<AssessmentResult, 'id' | 'created_at'> & { id?: string; created_at?: string };
         Update: Partial<Omit<AssessmentResult, 'id' | 'created_at'>>;
+      };
+      courses: {
+        Row: Course;
+        Insert: Omit<Course, 'id' | 'created_at'> & { id?: string; created_at?: string };
+        Update: Partial<Omit<Course, 'id' | 'created_at'>>;
+      };
+      course_competencies: {
+        Row: CourseCompetency;
+        Insert: Omit<CourseCompetency, 'id' | 'created_at'> & { id?: string; created_at?: string };
+        Update: Partial<Omit<CourseCompetency, 'id' | 'created_at'>>;
+      };
+      learning_paths: {
+        Row: LearningPath;
+        Insert: Omit<LearningPath, 'id' | 'created_at' | 'updated_at'> & {
+          id?: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: Partial<Omit<LearningPath, 'id' | 'created_at'>>;
+      };
+      learning_path_courses: {
+        Row: LearningPathCourse;
+        Insert: Omit<LearningPathCourse, 'id' | 'created_at'> & { id?: string; created_at?: string };
+        Update: Partial<Omit<LearningPathCourse, 'id' | 'created_at'>>;
+      };
+      user_course_progress: {
+        Row: UserCourseProgress;
+        Insert: Omit<UserCourseProgress, 'id' | 'started_at' | 'updated_at'> & {
+          id?: string;
+          started_at?: string;
+          updated_at?: string;
+        };
+        Update: Partial<Omit<UserCourseProgress, 'id' | 'started_at'>>;
       };
     };
     Enums: {
