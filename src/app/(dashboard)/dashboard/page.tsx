@@ -16,6 +16,7 @@ import {
   Library,
   PlayCircle,
   CheckCircle2,
+  History,
 } from "lucide-react";
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -56,6 +57,14 @@ export default async function DashboardPage() {
   // Fetch live learning roadmap and learning hour summary
   const learningDetails = await generateOrGetLearningPath(user.id);
   const learningSummary = await getUserLearningSummary(user.id);
+
+  // Fetch live activity logs
+  const { data: userActivities } = await supabase
+    .from("activity_logs")
+    .select("*")
+    .eq("user_id", user.id)
+    .order("created_at", { ascending: false })
+    .limit(4);
 
   // Current time greeting
   const hour = new Date().getHours();
@@ -311,8 +320,8 @@ export default async function DashboardPage() {
         </Card>
       </div>
 
-      {/* Row 3: Recommended Courses & Learning Roadmap */}
-      <div className="grid lg:grid-cols-2 gap-6">
+      {/* Row 3: Recommended Courses, Repositories, & Recent Activity */}
+      <div className="grid lg:grid-cols-3 gap-6">
         {/* Recommended Courses Card */}
         <Card>
           <CardHeader className="pb-3">
@@ -355,18 +364,18 @@ export default async function DashboardPage() {
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium truncate">{item.course.title}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {item.course.provider} · {item.course.duration_hours}h · {item.course.level}
+                      <p className="text-xs text-muted-foreground font-mono">
+                        {item.course.provider} · {item.course.duration_hours}h
                       </p>
                       {item.recommendation_reason && (
-                        <p className="text-[11px] text-amber-700 dark:text-amber-400 mt-1 line-clamp-1">
+                        <p className="text-[10px] text-amber-700 dark:text-amber-400 mt-1 line-clamp-1">
                           🎯 {item.recommendation_reason}
                         </p>
                       )}
                     </div>
                     <Badge
                       variant={item.priority === "high" ? "destructive" : "secondary"}
-                      className="text-[10px] flex-shrink-0"
+                      className="text-[9px] flex-shrink-0"
                     >
                       {item.priority === "high" ? "Critical" : "Recommended"}
                     </Badge>
@@ -377,30 +386,28 @@ export default async function DashboardPage() {
           </CardContent>
         </Card>
 
-        {/* Learning Activity & Quick Links */}
+        {/* National Training Repositories */}
         <Card>
           <CardHeader className="pb-3">
-            <div className="flex items-center justify-between">
-              <div>
-                <CardTitle className="text-lg flex items-center gap-2">
-                  <Library className="w-5 h-5 text-primary" />
-                  National Training Repositories
-                </CardTitle>
-                <CardDescription>
-                  Certified e-learning portals integrated with StatSkill AI
-                </CardDescription>
-              </div>
+            <div>
+              <CardTitle className="text-lg flex items-center gap-2">
+                <Library className="w-5 h-5 text-primary" />
+                Training Repositories
+              </CardTitle>
+              <CardDescription>
+                Certified e-learning portals integrated with StatSkill
+              </CardDescription>
             </div>
           </CardHeader>
           <CardContent className="space-y-3">
             <div className="p-3 rounded-lg border bg-card flex items-center justify-between gap-3">
-              <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-lg bg-amber-500/10 flex items-center justify-center">
-                  <GraduationCap className="w-5 h-5 text-amber-600 dark:text-amber-400" />
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-lg bg-amber-500/10 flex items-center justify-center">
+                  <GraduationCap className="w-4 h-4 text-amber-600 dark:text-amber-400" />
                 </div>
                 <div>
-                  <p className="text-sm font-semibold">iGOT Karmayogi Platform</p>
-                  <p className="text-xs text-muted-foreground">Comprehensive Civil Services e-Learning</p>
+                  <p className="text-xs font-semibold">iGOT Karmayogi</p>
+                  <p className="text-[10px] text-muted-foreground">Civil Services e-Learning</p>
                 </div>
               </div>
               <Button
@@ -414,20 +421,20 @@ export default async function DashboardPage() {
                     rel="noreferrer"
                   />
                 }
-                className="text-xs"
+                className="text-xs h-7"
               >
-                Visit Portal
+                Visit
               </Button>
             </div>
 
             <div className="p-3 rounded-lg border bg-card flex items-center justify-between gap-3">
-              <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-lg bg-blue-500/10 flex items-center justify-center">
-                  <BarChart3 className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center">
+                  <BarChart3 className="w-4 h-4 text-blue-600 dark:text-blue-400" />
                 </div>
                 <div>
-                  <p className="text-sm font-semibold">NSSTA Academy</p>
-                  <p className="text-xs text-muted-foreground">National Statistical Systems Training Academy</p>
+                  <p className="text-xs font-semibold">NSSTA Academy</p>
+                  <p className="text-[10px] text-muted-foreground">National Training Academy</p>
                 </div>
               </div>
               <Button
@@ -441,16 +448,16 @@ export default async function DashboardPage() {
                     rel="noreferrer"
                   />
                 }
-                className="text-xs"
+                className="text-xs h-7"
               >
-                Visit Portal
+                Visit
               </Button>
             </div>
 
             <Separator className="my-2" />
 
             <div className="flex items-center justify-between pt-1">
-              <span className="text-xs text-muted-foreground">Looking for specialized modules?</span>
+              <span className="text-[11px] text-muted-foreground">Browse all courses</span>
               <Button
                 variant="link"
                 size="sm"
@@ -458,9 +465,50 @@ export default async function DashboardPage() {
                 render={<Link href="/learning/catalogue" />}
                 className="text-xs p-0 h-auto"
               >
-                Browse all 16 courses →
+                Catalogue →
               </Button>
             </div>
+          </CardContent>
+        </Card>
+
+        {/* Recent Activity Card */}
+        <Card>
+          <CardHeader className="pb-3">
+            <div>
+              <CardTitle className="text-lg flex items-center gap-2">
+                <History className="w-5 h-5 text-primary" />
+                My Recent Activities
+              </CardTitle>
+              <CardDescription>
+                Live log of your learning actions and quiz scores
+              </CardDescription>
+            </div>
+          </CardHeader>
+          <CardContent>
+            {!userActivities || userActivities.length === 0 ? (
+              <div className="py-8 text-center text-xs text-muted-foreground font-mono">
+                No recent activities. Complete baseline surveys or courses to populate logs.
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {userActivities.map((act: any) => (
+                  <div key={act.id} className="p-2.5 rounded-lg border bg-card text-xs flex justify-between gap-3">
+                    <div className="space-y-0.5">
+                      <p className="font-medium text-foreground">{act.description}</p>
+                      <p className="text-[10px] text-muted-foreground font-mono">
+                        {new Date(act.created_at).toLocaleDateString("en-IN", {
+                          day: "numeric",
+                          month: "short",
+                        })}
+                      </p>
+                    </div>
+                    <Badge variant="outline" className="text-[9px] uppercase font-mono h-fit">
+                      {act.activity_type.replace("_", " ")}
+                    </Badge>
+                  </div>
+                ))}
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>

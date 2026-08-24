@@ -14,7 +14,7 @@ export type RecommendationPriority = 'high' | 'medium' | 'low';
 export type QuestionStatus = 'pending_review' | 'approved' | 'rejected';
 
 // ============================================================
-// TABLES
+// TABLES & VIEWS
 // ============================================================
 
 export interface Department {
@@ -227,6 +227,28 @@ export interface QuizAttempt {
   completed_at: string;
 }
 
+export interface ActivityLog {
+  id: string;
+  user_id: string;
+  activity_type: string;
+  description: string;
+  metadata: any;
+  created_at: string;
+}
+
+export interface DepartmentCompetencyStats {
+  department_id: string;
+  department_name: string;
+  competency_id: string;
+  competency_name: string;
+  competency_code: string;
+  domain_id: string;
+  domain_name: string;
+  domain_code: string;
+  average_current_level: number;
+  average_required_level: number;
+}
+
 // ============================================================
 // COMPUTED / JOIN TYPES (for UI & Skill Intelligence)
 // ============================================================
@@ -297,6 +319,10 @@ export interface QuizWithQuestions extends Quiz {
 
 export interface QuizAttemptWithQuiz extends QuizAttempt {
   quiz: Quiz & { competency: Competency };
+}
+
+export interface ActivityLogWithProfile extends ActivityLog {
+  profile: Profile;
 }
 
 // ============================================================
@@ -449,6 +475,11 @@ export interface Database {
         Row: QuizAttempt;
         Insert: Omit<QuizAttempt, 'id' | 'completed_at'> & { id?: string; completed_at?: string };
         Update: Partial<Omit<QuizAttempt, 'id' | 'completed_at'>>;
+      };
+      activity_logs: {
+        Row: ActivityLog;
+        Insert: Omit<ActivityLog, 'id' | 'created_at'> & { id?: string; created_at?: string };
+        Update: Partial<Omit<ActivityLog, 'id' | 'created_at'>>;
       };
     };
     Enums: {

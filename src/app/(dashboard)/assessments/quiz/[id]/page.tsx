@@ -27,6 +27,8 @@ import { Label } from "@/components/ui/label";
 import { useUser } from "@/hooks/use-user";
 import { getQuizDetails, submitQuizAttempt } from "../../quiz-actions";
 import type { QuizWithQuestions } from "@/types";
+import { createClient } from "@/lib/supabase/client";
+import CertificateModal from "@/components/learning/certificate-modal";
 
 export default function QuizTakePage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter();
@@ -37,6 +39,8 @@ export default function QuizTakePage({ params }: { params: Promise<{ id: string 
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [quiz, setQuiz] = useState<QuizWithQuestions | null>(null);
+  const [profile, setProfile] = useState<any>(null);
+  const [showCertificate, setShowCertificate] = useState(false);
 
   // Exam Progress State
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -61,6 +65,15 @@ export default function QuizTakePage({ params }: { params: Promise<{ id: string 
           return;
         }
         setQuiz(details);
+        if (user) {
+          const supabase = createClient();
+          const { data: prof } = await (supabase as any)
+            .from("profiles")
+            .select("*")
+            .eq("id", user.id)
+            .single();
+          setProfile(prof);
+        }
       } catch (err) {
         console.error(err);
         toast.error("Failed to load quiz questions.");
@@ -195,11 +208,20 @@ export default function QuizTakePage({ params }: { params: Promise<{ id: string 
             </div>
 
             {passed && (
-              <div className="p-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-xs text-emerald-800 dark:text-emerald-300 flex items-center gap-2">
-                <Award className="w-5 h-5 text-emerald-500 flex-shrink-0" />
-                <span>
-                  <strong>Skill Promotion Active:</strong> Your competency profile radar chart has been automatically upgraded to <strong>Level {quiz.target_level}</strong> for {quiz.competency?.name}!
-                </span>
+              <div className="p-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-xs text-emerald-800 dark:text-emerald-300 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div className="flex items-center gap-2">
+                  <Award className="w-5 h-5 text-emerald-500 flex-shrink-0" />
+                  <span>
+                    <strong>Skill Promotion Active:</strong> Your competency profile radar chart has been upgraded to <strong>Level {quiz.target_level}</strong> for {quiz.competency?.name}!
+                  </span>
+                </div>
+                <Button
+                  onClick={() => setShowCertificate(true)}
+                  className="bg-emerald-600 hover:bg-emerald-700 text-white text-xs h-8 px-3 font-semibold flex-shrink-0 gap-1"
+                >
+                  <Award className="w-3.5 h-3.5" />
+                  View Certificate
+                </Button>
               </div>
             )}
 
@@ -257,6 +279,19 @@ export default function QuizTakePage({ params }: { params: Promise<{ id: string 
                 Retake Exam
               </Button>
             </div>
+
+            {profile && (
+              <CertificateModal
+                open={showCertificate}
+                onOpenChange={setShowCertificate}
+                employeeName={profile.full_name}
+                designation={profile.designation || "Statistical Officer"}
+                competencyName={quiz.competency?.name || "Survey Sampling"}
+                competencyCode={quiz.competency?.code || "COMP"}
+                levelEarned={quiz.target_level}
+                dateEarned={new Date().toISOString()}
+              />
+            )}
           </CardContent>
         </Card>
       </div>
