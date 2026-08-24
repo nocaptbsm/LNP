@@ -11,6 +11,7 @@ export type AssessmentStatus = 'in_progress' | 'completed';
 export type CourseLevel = 'Beginner' | 'Intermediate' | 'Advanced';
 export type CourseProgressStatus = 'enrolled' | 'in_progress' | 'completed';
 export type RecommendationPriority = 'high' | 'medium' | 'low';
+export type QuestionStatus = 'pending_review' | 'approved' | 'rejected';
 
 // ============================================================
 // TABLES
@@ -163,6 +164,69 @@ export interface UserCourseProgress {
   updated_at: string;
 }
 
+export interface TrainingMaterial {
+  id: string;
+  title: string;
+  description: string | null;
+  file_name: string;
+  file_size_kb: number;
+  uploaded_by: string;
+  competency_id: string | null;
+  status: string;
+  created_at: string;
+}
+
+export interface GeneratedQuestion {
+  id: string;
+  material_id: string | null;
+  competency_id: string;
+  question_text: string;
+  option_a: string;
+  option_b: string;
+  option_c: string;
+  option_d: string;
+  correct_option: 'A' | 'B' | 'C' | 'D';
+  explanation: string | null;
+  difficulty: string;
+  status: QuestionStatus;
+  created_at: string;
+}
+
+export interface Quiz {
+  id: string;
+  title: string;
+  description: string | null;
+  competency_id: string;
+  target_level: number;
+  passing_score: number;
+  created_by: string | null;
+  is_published: boolean;
+  created_at: string;
+}
+
+export interface QuizQuestion {
+  id: string;
+  quiz_id: string;
+  question_text: string;
+  option_a: string;
+  option_b: string;
+  option_c: string;
+  option_d: string;
+  correct_option: 'A' | 'B' | 'C' | 'D';
+  explanation: string | null;
+  sequence_order: number;
+  created_at: string;
+}
+
+export interface QuizAttempt {
+  id: string;
+  user_id: string;
+  quiz_id: string;
+  score_percentage: number;
+  status: 'passed' | 'failed';
+  completed_at: string;
+}
+
 // ============================================================
 // COMPUTED / JOIN TYPES (for UI & Skill Intelligence)
 // ============================================================
@@ -223,6 +287,16 @@ export interface LearningPathDetails {
   totalHours: number;
   completedHours: number;
   criticalGapsCovered: number;
+}
+
+export interface QuizWithQuestions extends Quiz {
+  questions: QuizQuestion[];
+  competency?: Competency | null;
+  user_attempts?: QuizAttempt[];
+}
+
+export interface QuizAttemptWithQuiz extends QuizAttempt {
+  quiz: Quiz & { competency: Competency };
 }
 
 // ============================================================
@@ -350,6 +424,31 @@ export interface Database {
           updated_at?: string;
         };
         Update: Partial<Omit<UserCourseProgress, 'id' | 'started_at'>>;
+      };
+      training_materials: {
+        Row: TrainingMaterial;
+        Insert: Omit<TrainingMaterial, 'id' | 'created_at'> & { id?: string; created_at?: string };
+        Update: Partial<Omit<TrainingMaterial, 'id' | 'created_at'>>;
+      };
+      generated_questions: {
+        Row: GeneratedQuestion;
+        Insert: Omit<GeneratedQuestion, 'id' | 'created_at'> & { id?: string; created_at?: string };
+        Update: Partial<Omit<GeneratedQuestion, 'id' | 'created_at'>>;
+      };
+      quizzes: {
+        Row: Quiz;
+        Insert: Omit<Quiz, 'id' | 'created_at'> & { id?: string; created_at?: string };
+        Update: Partial<Omit<Quiz, 'id' | 'created_at'>>;
+      };
+      quiz_questions: {
+        Row: QuizQuestion;
+        Insert: Omit<QuizQuestion, 'id' | 'created_at'> & { id?: string; created_at?: string };
+        Update: Partial<Omit<QuizQuestion, 'id' | 'created_at'>>;
+      };
+      quiz_attempts: {
+        Row: QuizAttempt;
+        Insert: Omit<QuizAttempt, 'id' | 'completed_at'> & { id?: string; completed_at?: string };
+        Update: Partial<Omit<QuizAttempt, 'id' | 'completed_at'>>;
       };
     };
     Enums: {
