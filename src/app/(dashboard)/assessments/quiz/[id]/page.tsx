@@ -354,10 +354,9 @@ export default function QuizTakePage({ params }: { params: Promise<{ id: string 
                     onClick={() => handleOptionSelect(opt.key)}
                     className={`
                       flex items-start space-x-3 p-3.5 rounded-xl border transition-all cursor-pointer
-                      ${
-                        isSelected
-                          ? "border-amber-500 bg-amber-50/50 dark:bg-amber-950/30 ring-1 ring-amber-500/50"
-                          : "border-border hover:bg-muted/50"
+                      ${isSelected
+                        ? "border-amber-500 bg-amber-50/50 dark:bg-amber-950/30 ring-1 ring-amber-500/50"
+                        : "border-border hover:bg-muted/50"
                       }
                     `}
                   >
