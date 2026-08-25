@@ -204,18 +204,18 @@ export async function getLearningPathWithDetails(
     };
   }
 
-  // 2. Fetch path courses with course and competency details
-  const { data: pathCourses } = await (supabase as any)
-    .from("learning_path_courses")
-    .select("*, course:courses(*), competency:competencies(*)")
-    .eq("learning_path_id", path.id)
-    .order("sequence_order");
-
-  // 3. Fetch user progress for these courses
-  const { data: progressRecords } = await (supabase as any)
-    .from("user_course_progress")
-    .select("*")
-    .eq("user_id", userId);
+  // 2. Fetch path courses AND user progress in parallel
+  const [{ data: pathCourses }, { data: progressRecords }] = await Promise.all([
+    (supabase as any)
+      .from("learning_path_courses")
+      .select("*, course:courses(*), competency:competencies(*)")
+      .eq("learning_path_id", path.id)
+      .order("sequence_order"),
+    (supabase as any)
+      .from("user_course_progress")
+      .select("*")
+      .eq("user_id", userId),
+  ]);
 
   const progressMap = new Map<string, any>();
   progressRecords?.forEach((pr: any) => {

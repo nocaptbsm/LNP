@@ -14,7 +14,8 @@ export default async function DashboardLayout({
 }) {
   const supabase = await createClient();
 
-  // Check authentication
+  // Single auth call — the middleware already validated the session,
+  // so getUser() here just reads from the refreshed cookie (fast).
   const {
     data: { user },
   } = await supabase.auth.getUser();

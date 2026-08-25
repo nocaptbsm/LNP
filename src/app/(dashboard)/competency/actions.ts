@@ -31,30 +31,23 @@ export async function getCompetencyProfileData(
 ): Promise<CompetencyProfileData> {
   const supabase = await createClient();
 
-  // 1. Get user profile designation
+  // Parallelize ALL independent database queries
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { data: profile } = await (supabase as any)
-    .from("profiles")
-    .select("designation")
-    .eq("id", userId)
-    .single();
+  const [
+    { data: profile },
+    { data: domains },
+    { data: competencies },
+    { data: userLevels },
+  ] = await Promise.all([
+    (supabase as any).from("profiles").select("designation").eq("id", userId).single(),
+    (supabase as any).from("domains").select("*").order("name"),
+    (supabase as any).from("competencies").select("*, domain:domains(*)"),
+    (supabase as any).from("user_competencies").select("*").eq("user_id", userId),
+  ]);
 
   const userDesignation = profile?.designation || "Junior Statistical Officer";
 
-  // 2. Fetch all domains
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { data: domains } = await (supabase as any)
-    .from("domains")
-    .select("*")
-    .order("name");
-
-  // 3. Fetch all competencies
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { data: competencies } = await (supabase as any)
-    .from("competencies")
-    .select("*, domain:domains(*)");
-
-  // 4. Fetch target role requirements for user's designation (fallback to 'Default')
+  // Fetch role requirements (depends on userDesignation)
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let { data: roleRequirements } = await (supabase as any)
     .from("role_competencies")
@@ -75,13 +68,6 @@ export async function getCompetencyProfileData(
   roleRequirements?.forEach((r: { competency_id: string; required_level: number }) => {
     reqMap.set(r.competency_id, r.required_level);
   });
-
-  // 5. Fetch user's current assessed competency levels
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { data: userLevels } = await (supabase as any)
-    .from("user_competencies")
-    .select("*")
-    .eq("user_id", userId);
 
   const currentLevelMap = new Map<string, number>();
   userLevels?.forEach((ul: { competency_id: string; current_level: number }) => {

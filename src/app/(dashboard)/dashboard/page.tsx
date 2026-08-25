@@ -43,28 +43,31 @@ export default async function DashboardPage() {
 
   if (!user) redirect("/login");
 
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("*, department:departments(*)")
-    .eq("id", user.id)
-    .single();
+  // Parallelize ALL independent data fetches for maximum speed
+  const [
+    { data: profile },
+    compData,
+    learningDetails,
+    learningSummary,
+    { data: userActivities },
+  ] = await Promise.all([
+    supabase
+      .from("profiles")
+      .select("*, department:departments(*)")
+      .eq("id", user.id)
+      .single(),
+    getCompetencyProfileData(user.id),
+    generateOrGetLearningPath(user.id),
+    getUserLearningSummary(user.id),
+    supabase
+      .from("activity_logs")
+      .select("*")
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: false })
+      .limit(4),
+  ]);
 
   const p = profile as unknown as ProfileWithDepartment | null;
-
-  // Fetch live competency analytics
-  const compData = await getCompetencyProfileData(user.id);
-
-  // Fetch live learning roadmap and learning hour summary
-  const learningDetails = await generateOrGetLearningPath(user.id);
-  const learningSummary = await getUserLearningSummary(user.id);
-
-  // Fetch live activity logs
-  const { data: userActivities } = await supabase
-    .from("activity_logs")
-    .select("*")
-    .eq("user_id", user.id)
-    .order("created_at", { ascending: false })
-    .limit(4);
 
   // Current time greeting
   const hour = new Date().getHours();
