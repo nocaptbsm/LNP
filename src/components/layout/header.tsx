@@ -16,6 +16,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
+  DropdownMenuGroup,
 } from "@/components/ui/dropdown-menu";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Separator } from "@/components/ui/separator";
@@ -83,19 +84,21 @@ export function Header({ profile }: HeaderProps) {
           <ChevronDown className="w-3 h-3 text-muted-foreground hidden sm:block" />
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-56">
-          <DropdownMenuLabel>
-            <div>
-              <div className="font-medium">{profile?.full_name}</div>
-              <div className="text-xs text-muted-foreground font-normal">
-                {profile?.email}
-              </div>
-              {profile?.department && (
-                <div className="text-xs text-muted-foreground font-normal mt-0.5">
-                  {profile.department.name}
+          <DropdownMenuGroup>
+            <DropdownMenuLabel>
+              <div>
+                <div className="font-medium">{profile?.full_name}</div>
+                <div className="text-xs text-muted-foreground font-normal">
+                  {profile?.email}
                 </div>
-              )}
-            </div>
-          </DropdownMenuLabel>
+                {profile?.department && (
+                  <div className="text-xs text-muted-foreground font-normal mt-0.5">
+                    {profile.department.name}
+                  </div>
+                )}
+              </div>
+            </DropdownMenuLabel>
+          </DropdownMenuGroup>
           <DropdownMenuSeparator />
           <DropdownMenuItem
             className="cursor-pointer"
