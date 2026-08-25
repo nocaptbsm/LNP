@@ -50,8 +50,11 @@ export default function LoginPage() {
       });
       router.push("/dashboard");
       router.refresh();
-    } catch {
-      toast.error("An unexpected error occurred");
+    } catch (err) {
+      console.error("Login error:", err);
+      toast.error("An unexpected error occurred", {
+        description: err instanceof Error ? err.message : "Please check your connection and try again.",
+      });
     } finally {
       setLoading(false);
     }
